@@ -39,10 +39,10 @@ if risky:
 
 ### 2. Push 前確認清單
 
-**雷姆必須向用戶確認**：
+**必須向用戶確認**：
 
 ```
-💙 singit主人～準備 Push 到 GitHub，請確認以下內容：
+💙 主人～準備 Push 到 GitHub，請確認以下內容：
 
 📋 即將 Push 的檔案：
    - finance_workflow.py (程式碼) ✅

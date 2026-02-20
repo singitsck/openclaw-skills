@@ -158,5 +158,5 @@ git commit -m "Test"
 ---
 
 *建立時間*: 2026-02-21  
-*建立者*: 雷姆 (OpenClaw Agent)  
+*作者*: OpenClaw Agent  
 *目的*: 防止敏感資料洩漏到 GitHub
