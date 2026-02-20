@@ -1,0 +1,55 @@
+#!/bin/bash
+# ============================================
+# Pre-commit Hook - 防止敏感資料洩漏
+# 安裝: 複製到 .git/hooks/pre-commit
+# ============================================
+
+echo "🔍 檢查敏感資料..."
+
+# 檢查即將提交的檔案
+FILES=$(git diff --cached --name-only --diff-filter=ACM)
+
+# 危險模式
+DANGEROUS_PATTERNS=(
+    "HKD [0-9]"      # 港幣金額
+    "USD [0-9]"      # 美元金額
+    "信用卡"         # 信用卡資訊
+    "商戶名稱"       # 商家名稱
+    "交易金額"       # 交易金額
+    "直接扣賬"       # 扣賬通知
+    "信用卡尾號"     # 卡號後四碼
+    "config.json$"   # 真實配置檔（非模板）
+)
+
+# 檢查檔案名稱
+for file in $FILES; do
+    # 檢查是否為敏感檔案類型
+    if [[ $file == *.csv ]] || [[ $file == *.log ]] || [[ $file == raw/* ]]; then
+        echo "❌ ERROR: Detected sensitive file type: $file"
+        echo "   CSV/Log/Raw files should NOT be committed!"
+        exit 1
+    fi
+    
+    # 檢查 config.json（非模板）
+    if [[ $file == "config.json" ]] && [[ $file != *.template ]]; then
+        echo "❌ ERROR: config.json contains passwords!"
+        echo "   Use config.json.template instead."
+        exit 1
+    fi
+done
+
+# 檢查檔案內容
+for pattern in "${DANGEROUS_PATTERNS[@]}"; do
+    MATCHES=$(git diff --cached | grep -E "$pattern" | head -5)
+    if [ ! -z "$MATCHES" ]; then
+        echo "❌ ERROR: Detected sensitive pattern: $pattern"
+        echo "   Matches:"
+        echo "$MATCHES"
+        echo ""
+        echo "💡 這些內容不應該 Push 到 GitHub！"
+        exit 1
+    fi
+done
+
+echo "✅ 沒有檢測到敏感資料，繼續提交..."
+exit 0
