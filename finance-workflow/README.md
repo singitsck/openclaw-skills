@@ -1,138 +1,117 @@
-# 💰 香港銀行財務自動化 Workflow
+# 💰 香港銀行財務自動化 Workflow (Hybrid Mode)
+
+混合模式：Email 交易通知 + PDF 月結單合併，生成完整財務報表
 
 ## 目錄結構
 
 ```
 ~/.finance/
-├── config.json              # Yahoo Mail 設定 (需要手動填寫)
+├── config.json                    # 設定檔案
 ├── scripts/
-│   ├── finance_workflow.py  # 主要 workflow 腳本
-│   ├── run_monthly.sh       # 每月執行腳本
-│   ├── test_workflow.sh     # 測試腳本
-│   └── requirements.txt     # Python 依賴
-├── raw/                     # 原始 CSV
-│   └── YYYY-MM.csv
-├── processed/               # 分類後 CSV
-│   └── YYYY-MM_classified.csv
-├── reports/                 # HTML 報表
-│   └── YYYY-MM.html
-└── logs/                    # 執行日誌
+│   ├── reconciler.py             # ⭐ 對帳腳本（Email + PDF 合併）
+│   ├── pdf_parser.py             # PDF 月結單解析器
+│   ├── finance_workflow.py       # 原有 Email workflow
+│   ├── sync-to-github.sh         # 自動同步到 GitHub
+│   └── ...
+├── transactions/                 # Email 抓取的交易記錄
+│   └── YYYY-MM-email.json
+├── statements/                   # 手動下載的 PDF 月結單
+│   └── YYYY-MM/
+│       ├── hsbc.pdf
+│       └── boc.pdf
+├── reconciled/                   # 合併後的完整記錄
+│   ├── YYYY-MM-complete.csv
+│   └── YYYY-MM-complete.json
+└── HYBRID_MODE_GUIDE.md         # 詳細使用指南
 ```
 
-## 設定步驟
+## 🚀 快速開始
 
-### 1️⃣ Yahoo App Password 設定
-
-**⚠️ 重要：Yahoo 已停用普通密碼的 IMAP 存取，必須使用 App Password**
-
-1. 前往 https://login.yahoo.com/account/security
-2. 登入 Yahoo 帳號
-3. 找到「**Generate app password**」(產生應用程式密碼)
-4. 選擇應用類型「**Other**」，輸入名稱「Finance Workflow」
-5. 複製生成的 16 位密碼（格式：xxxx xxxx xxxx xxxx）
-6. **立即貼到 config.json**
-
-### 2️⃣ 確認 IMAP 已啟用
-
-1. 在 https://login.yahoo.com/account/security
-2. 確認「**Allow apps that use less secure sign in**」或 IMAP 存取已啟用
-
-### 3️⃣ 設定 config.json
+### 1. 每月工作流程
 
 ```bash
-cp ~/.finance/config.json.template ~/.finance/config.json
-# 編輯 config.json，填入 email 和 app_password
+# Step 1: 日常（自動）
+# Email Parser 持續抓取交易通知
+
+# Step 2: 月底（手動 5 分鐘）
+# 從各銀行網站下載 PDF 月結單，放到:
+# ~/.finance/statements/2026-01/
+
+# Step 3: 執行對帳
+python3 ~/.finance/scripts/reconciler.py reconcile 2026-01
+
+# Step 4: 查看報告
+python3 ~/.finance/scripts/reconciler.py report 2026-01
 ```
 
-config.json 格式：
-```json
-{
-  "email": "your-email@yahoo.com",
-  "app_password": "abcd efgh ijkl mnop"
-}
-```
-
-### 4️⃣ 測試 Workflow
+### 2. 同步到 GitHub
 
 ```bash
-~/.finance/scripts/test_workflow.sh
+# 自動同步（手動執行）
+~/.finance/scripts/sync-to-github.sh
+
+# 或使用 alias
+alias sync-finance='~/.finance/scripts/sync-to-github.sh'
 ```
 
-這會：
-- 搜尋 2026-01 的銀行郵件
-- 下載 PDF 附件
-- 解析交易
-- 顯示 CSV 前10行 + 統計草稿
+## 📊 功能特性
 
-### 5️⃣ 確認測試結果
+| 功能 | 說明 |
+|------|------|
+| **智能去重** | 自動識別 Email 和 PDF 中的重複交易 |
+| **模糊匹配** | 基於日期+金額+描述相似度合併 |
+| **多銀行支援** | HSBC、BOC、ZA Bank、Mox、AEON |
+| **自動分類** | 餐飲、交通、購物、轉賬等類別 |
+| **iCloud 同步** | 報表自動同步到 iCloud Drive |
 
-檢查：
-- [ ] CSV 欄位正確（日期、描述、金額、幣別、類型、卡號後四碼）
-- [ ] 金額正確無誤
-- [ ] 類別分類合理
-- [ ] 沒有遺漏重要交易
-- [ ] 沒有解析失敗的 PDF
+## 📈 輸出檔案
 
-**如有問題**，手動檢查原始 PDF 並調整 `finance_workflow.py` 中的 `extract_transactions_from_text()` 函數。
+執行對帳後生成：
 
-### 6️⃣ 建立 Cron Job
+| 檔案 | 位置 | 用途 |
+|------|------|------|
+| `YYYY-MM-complete.csv` | `~/.finance/reconciled/` | Excel 可開啟 |
+| `YYYY-MM-complete.json` | `~/.finance/reconciled/` | 程式讀取 |
+| `YYYY-MM-report.txt` | `~/.finance/reconciled/` | 文字報告 |
+| `Reports/YYYY-MM/` | `iCloud Drive/Documents/Finance/` | 全設備同步 |
 
-測試通過後，建立每月自動執行：
+## 🔧 技術細節
 
-```bash
-# 每月 5 號 8:30 執行
-openclaw gateway cron create \
-  --name finance-monthly \
-  --schedule "30 8 5 * *" \
-  --command "$HOME/.finance/scripts/run_monthly.sh"
+### 去重邏輯
+
+```python
+# 匹配鍵：日期 + 金額
+key = ("2026-01-15", -150.00)
+
+# 描述相似度 >= 30% 視為同一筆
+# 合併後標記為 source: "email+pdf"
 ```
 
-或使用 crontab：
-```bash
-# 編輯 crontab
-crontab -e
+### 支援的銀行
 
-# 加入這行
-30 8 5 * * /Users/$USER/.finance/scripts/run_monthly.sh
-```
+| 銀行 | Email | PDF | 狀態 |
+|------|-------|-----|------|
+| HSBC | ✅ | ✅ | 可用 |
+| BOC | ✅ | ✅ | 可用 |
+| ZA Bank | ✅ | ⏳ | 待開發 |
+| Mox | ✅ | ⏳ | 待開發 |
+| AEON | ✅ | ⏳ | 待開發 |
 
-## 手動執行
+## 📚 相關文檔
 
-```bash
-# 處理上個月
-python3 ~/.finance/scripts/finance_workflow.py
+- [HYBRID_MODE_GUIDE.md](./HYBRID_MODE_GUIDE.md) - 詳細使用指南
+- [RESEARCH_REPORT.md](./RESEARCH_REPORT.md) - 國際最佳實踐研究
 
-# 處理指定月份
-python3 ~/.finance/scripts/finance_workflow.py --month 2026-01
+## 📝 更新日誌
 
-# 僅下載附件
-python3 ~/.finance/scripts/finance_workflow.py --month 2026-01 --download-only
-```
+### 2026-02-22
+- ✨ 新增混合模式對帳系統
+- ✨ 新增 PDF 自動解析器（HSBC/BOC）
+- ✨ 新增智能去重功能
+- ✨ 新增 iCloud 自動同步
+- ✨ 新增 GitHub 自動同步腳本
 
-## 輸出檔案
+---
 
-- **原始 CSV**: `~/.finance/raw/YYYY-MM.csv`
-- **分類 CSV**: `~/.finance/processed/YYYY-MM_classified.csv`
-- **HTML 報表**: `~/.finance/reports/YYYY-MM.html`
-- **Discord 摘要**: `~/.finance/discord_summary_YYYY-MM.txt`
-
-## 故障排除
-
-### PDF 解析失敗
-- 檢查 `~/.finance/raw/YYYY-MM/` 下的原始 PDF
-- 不同銀行格式不同，可能需要調整正則表達式
-
-### IMAP 連線失敗
-- 確認 App Password 正確
-- 確認 Yahoo 帳號沒有啟用兩步驟驗證阻擋
-
-### 郵件搜尋不到
-- 檢查郵件是否在 Inbox
-- 確認郵件標題包含關鍵字（月結單、Statement 等）
-
-## 自訂設定
-
-編輯 `finance_workflow.py` 可調整：
-- `BANK_DOMAINS`: 銀行域名列表
-- `KEYWORDS`: 搜尋關鍵字
-- `CATEGORY_RULES`: 交易分類規則
+**注意**: `.finance/` 目錄包含敏感數據（交易記錄），不應推送到 GitHub。
+僅推送通用腳本和文檔到 `openclaw-skills` 倉庫。
