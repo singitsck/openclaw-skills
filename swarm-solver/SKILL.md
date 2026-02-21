@@ -45,67 +45,31 @@ If k2-thinking unavailable or slow:
 Fallback to default model (k2p5) due to availability
 ```
 
-## Execution Steps (MUST CHECK EACH ROUND)
-
-**重要：每完成一個 Step，必須通知用戶，然後自動繼續下一步**
+## Execution Steps
 
 ### Step 1: Analyze & Switch Model
 - Thought first: Is this complex enough for swarm?
 - If yes, switch to k2-thinking
 - Decompose task into 3–5 sub-modules
-- **📝 NOTIFY USER**: "已完成任務分析，計劃分為 X 個步驟：[列出步驟]。現在開始執行..."
-- **▶️ AUTO-CONTINUE**: 自動進入下一步
 
 ### Step 2: Initialize Brain (Supervisor)
 - Role: CEO/Supervisor Agent
 - Responsibilities: Planning, spawning, coordination
 - Create `swarm-plan.md` with decomposition
-- **📝 NOTIFY USER**: "已建立執行計劃。準備開始執行..."
-- **▶️ AUTO-CONTINUE**: 自動進入下一步
 
 ### Step 3: Execute Step-by-Step
 For each sub-task:
-1. **📝 NOTIFY USER**: "正在執行 Step X: [任務描述]..."
-2. Execute the step (research/code/test)
-3. **📝 NOTIFY USER**: "Step X 完成！結果：[簡要摘要]。繼續下一步..."
-4. **▶️ AUTO-CONTINUE**: 自動進入下一步
+1. Execute the step (research/code/test)
+2. Update `swarm-status.md`
+3. Continue to next step automatically
 
-### Step 4: Progress Update
-- Update `swarm-status.md`
-- **📝 NOTIFY USER**: "當前進度：X/Y 完成。下一個步驟是：[描述]。"
-- **▶️ AUTO-CONTINUE**: 自動進入下一步
-
-### Step 5: Integration & Final Review
+### Step 4: Integration & Final Review
 - Combine all results
-- **📝 NOTIFY USER**: "所有步驟完成！正在整合結果..."
 - Generate final deliverable
-- **📝 NOTIFY USER**: "✅ 任務全部完成！最終結果：[摘要]。"
 
-### Step 6: Cleanup
+### Step 5: Cleanup
 - Clean up agents
-- **📝 NOTIFY USER**: "已清理臨時檔案，任務結束。"
-
-## User Notification Template
-
-每個 Step 完成後，使用以下格式通知用戶：
-
-```
-💙 主人～Step X 完成！💙
-
-📋 剛完成的內容：
-[簡要描述]
-
-📊 當前進度：X/Y
-
-➡️ 自動繼續下一步：[下一步描述]
-```
-
-## Important Note
-
-- ✅ **DO**: 每個 Step 完成後立即通知用戶
-- ✅ **DO**: 通知後自動繼續，無需等待確認
-- ❌ **DON'T**: 等待用戶說「繼續」才進行下一步
-- ❌ **DON'T**: 全部完成才一次性通知
+- Present final results to user
 
 ## Agent Role Templates
 
@@ -141,6 +105,48 @@ For each sub-task:
 4. `write` / `edit` – Update blackboard files
 5. `web_search` – Research tasks
 
+### sessions_spawn Parameters (Complete Example)
+
+```bash
+sessions_spawn \
+  --task "Research AI market trends and write summary" \
+  --label research-worker \
+  --model "kimi-coding/k2p5" \
+  --runTimeoutSeconds 600 \
+  --cleanup delete
+```
+
+**Parameter Explanation:**
+- `--task`: Clear objective for the agent
+- `--label`: Unique identifier for the agent
+- `--model`: Override model for this agent (use cheap model for workers)
+- `--runTimeoutSeconds`: Maximum execution time (default: 300)
+- `--cleanup delete`: Auto-delete session when done (saves resources)
+
+### Nested Spawning Check
+
+**⚠️ Important**: OpenClaw default does NOT allow sub-agents to call `sessions_spawn`.
+
+**Check before spawning:**
+```
+Thought: Check if nested spawning is allowed in config. 
+If subagents.allowSpawn is false, Supervisor must spawn all agents directly.
+```
+
+**Config requirement for nested spawning:**
+```json
+{
+  "subagents": {
+    "allowSpawn": true,
+    "maxDepth": 2
+  }
+}
+```
+
+**Workaround (if nested not allowed):**
+- All spawning must be done by Supervisor Agent
+- Workers should use `sessions_send` to request new agents from Supervisor
+
 ### Communication Format
 ```xml
 <!-- Agent communication -->
@@ -151,91 +157,80 @@ For each sub-task:
 </agent_task>
 ```
 
-## Example Execution (Step-by-Step with User Confirmation)
+### Model Alias Configuration
+
+**Required Setup**: Add Moonshot/Kimi provider to OpenClaw config:
+
+```json
+{
+  "providers": {
+    "moonshot": {
+      "baseUrl": "https://api.moonshot.cn/v1",
+      "apiKey": "your-api-key"
+    }
+  },
+  "models": {
+    "kimi-coding/k2p5": {
+      "provider": "moonshot",
+      "model": "kimi-k2-0711"
+    },
+    "kimi-coding/kimi-k2-thinking": {
+      "provider": "moonshot",
+      "model": "kimi-k2-thinking-0711"
+    }
+  }
+}
+```
+
+**⚠️ Cost Note**: `kimi-k2-thinking` is significantly more expensive than `k2p5`. Use thinking model only for Supervisor/Brain roles.
+
+### Progress Tracking
+
+```bash
+# View agent status with compact stats
+subagents list --compact
+
+# Example output:
+# research-worker | running | 2m30s | 1.2k tokens
+# dev-worker      | idle    | -     | -
+```
+
+Update `swarm-status.md` after each spawn/kill.
+
+## Example Execution
 
 ### User Request
 > "Develop an AI chat app with market analysis"
 
----
+### Execution Flow
 
 **Step 1: Analysis & Model Switch**
+- Switch to k2-thinking
+- Decompose: Research → Dev → Design → Test
+- Create `swarm-plan.md`
+
+**Step 2: Spawn Research Agent**
+```bash
+sessions_spawn \
+  --task "Research AI chat app market, find 3 competitors, analyze features" \
+  --label research-worker \
+  --model "kimi-coding/k2p5" \
+  --cleanup delete
 ```
-💙 主人～Step 1 完成！💙
 
-📋 剛完成的內容：
-- 任務分析：需要研究、開發、設計、測試 4 個領域
-- 已切換到 k2-thinking 模型
-- 計劃分解為 4 個步驟
-
-📊 當前進度：1/6
-
-➡️ 下一步：建立執行計劃 (swarm-plan.md)
-
-請告訴我「繼續」或「下一步」來繼續～
+**Step 3: Spawn Developer Agent**
+```bash
+sessions_spawn \
+  --task "Build React frontend and Node.js backend for AI chat app" \
+  --label dev-worker \
+  --model "kimi-coding/k2p5" \
+  --cleanup delete
 ```
-**[等待用戶確認...]**
 
----
-
-**Step 2: Initialize Plan**
-```
-💙 主人～Step 2 完成！💙
-
-📋 剛完成的內容：
-- 已建立 swarm-plan.md
-- 已建立 swarm-status.md
-- 已識別所需 Agents：Research, Dev, Design, Test
-
-📊 當前進度：2/6
-
-➡️ 下一步：執行研究任務 (Research Agent)
-
-請告訴我「繼續」或「下一步」來繼續～
-```
-**[等待用戶確認...]**
-
----
-
-**Step 3: Execute Research**
-```
-💙 主人～Step 3 完成！💙
-
-📋 剛完成的內容：
-- Research Agent 已完成市場分析
-- 找到 3 個競品參考
-- 結果已寫入 swarm-results.md
-
-📊 當前進度：3/6
-
-➡️ 下一步：開發後端 API (Developer Agent)
-
-請告訴我「繼續」或「下一步」來繼續～
-```
-**[等待用戶確認...]**
-
----
-
-**[Continue for each step...]**
-
----
-
-**Final Step: Task Complete**
-```
-💙 主人～✅ 任務全部完成！💙
-
-📊 完成摘要：
-- 6/6 步驟全部完成
-- 研究報告：AI Chat App 市場分析
-- 程式碼：React + Node.js 完整專案
-- 設計：UI mockups in Figma
-- 測試：通過基本功能測試
-
-📁 輸出檔案：
-- ~/projects/ai-chat-app/
-- swarm-results.md
-
-已清理所有臨時檔案，感謝您的耐心指導～💙
-```
+**Step 4: Integration**
+- Collect results from all agents
+- Generate final deliverable
+- Present to user
 
 ## Blackboard File Templates
 
@@ -302,6 +297,7 @@ For each sub-task:
 3. **5-minute timeout per agent** – Early stop if stuck
 4. **Validate before integration** – Don't blindly combine results
 5. **Clean up on completion** – Use `cleanup=delete` or kill agents
+6. **Check nested spawning config** – Workers may fail to spawn
 
 ## Anti-Patterns (AVOID)
 
@@ -310,6 +306,7 @@ For each sub-task:
 - ❌ Letting agents run indefinitely
 - ❌ Skipping validation steps
 - ❌ Hardcoding model names (use aliases)
+- ❌ Assuming nested spawning works (check config first)
 
 ## Quick Reference
 
@@ -317,11 +314,16 @@ For each sub-task:
 # Switch model
 session_status --model kimi-coding/kimi-k2-thinking
 
-# Spawn agent
-sessions_spawn --task "[clear objective]" --label worker-1
+# Spawn agent with full options
+sessions_spawn \
+  --task "[clear objective]" \
+  --label worker-1 \
+  --model "kimi-coding/k2p5" \
+  --runTimeoutSeconds 600 \
+  --cleanup delete
 
-# Check status
-subagents list
+# Check status with compact view
+subagents list --compact
 
 # Send message
 sessions_send --label worker-1 --message "[update]"
