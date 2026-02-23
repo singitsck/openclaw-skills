@@ -34,8 +34,8 @@ PRESET_VOICES = {
     "izumi": {
         "name": "和泉妃愛 (Izumi Hiyori)",
         "audio": "izumi_hiyori/reference.wav",
-        "text": "あ、じゃあ別に無理しなくていいよ。そうすれば話が早いかなと思っただけなので",
-        "description": "和泉妃愛角色聲音，活潑可愛的學妹風格"
+        "text": "いやめっちゃ持ちあげるけども、普段通りでいいよ普段通りで。私と話すときみたいに",
+        "description": "和泉妃愛角色聲音，活潑可愛的學妹風格，帶有ひよひよ口頭禪"
     }
 }
 
