@@ -30,6 +30,12 @@ PRESET_VOICES = {
         "audio": "rem_reference.wav",
         "text": "ここから始めましょう。1から…いいえ、ゼロから",
         "description": "Re:Zero 雷姆角色聲音，日系女僕風格"
+    },
+    "izumi": {
+        "name": "和泉妃愛 (Izumi Hiyori)",
+        "audio": "izumi_hiyori/reference.wav",
+        "text": "あ、じゃあ別に無理しなくていいよ。そうすれば話が早いかなと思っただけなので",
+        "description": "和泉妃愛角色聲音，活潑可愛的學妹風格"
     }
 }
 
