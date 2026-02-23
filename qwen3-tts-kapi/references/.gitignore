@@ -1,4 +1,5 @@
-*.wav
+# Ignore audio files in general, but allow reference files
 *.mp3
 *.aac
 *.m4a
+*.flac
