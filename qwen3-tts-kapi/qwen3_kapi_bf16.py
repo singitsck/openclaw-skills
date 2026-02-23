@@ -27,7 +27,7 @@ DEFAULT_MODEL = "mlx-community/Qwen3-TTS-12Hz-1.7B-Base-bf16"
 PRESET_VOICES = {
     "rem": {
         "name": "雷姆 (Rem)",
-        "audio": "rem_reference.wav",
+        "audio": "rem/rem_reference.wav",
         "text": "ここから始めましょう。1から…いいえ、ゼロから",
         "description": "Re:Zero 雷姆角色聲音，日系女僕風格"
     },
@@ -38,6 +38,29 @@ PRESET_VOICES = {
         "description": "和泉妃愛角色聲音，活潑可愛的學妹風格"
     }
 }
+
+
+def find_voice_file(audio_path: str) -> str:
+    """
+    查找聲音文件，支持多個路徑：
+    1. ~/.openclaw/references/
+    2. 腳本所在目錄的 references/
+    3. 當前工作目錄的 references/
+    """
+    # 可能的路徑
+    possible_paths = [
+        os.path.join(DEFAULT_VOICES_DIR, audio_path),
+        os.path.join(os.path.dirname(__file__), "references", audio_path),
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "references", audio_path),
+        os.path.join(os.getcwd(), "references", audio_path),
+    ]
+    
+    for path in possible_paths:
+        if os.path.exists(path):
+            return path
+    
+    # 如果都找不到，返回第一個路徑（讓後續報錯）
+    return possible_paths[0]
 
 
 def check_model_downloaded(model_id: str) -> bool:
@@ -184,7 +207,7 @@ def main():
             sys.exit(1)
         
         voice_info = PRESET_VOICES[args.voice]
-        ref_audio = os.path.join(DEFAULT_VOICES_DIR, voice_info["audio"])
+        ref_audio = find_voice_file(voice_info["audio"])
         ref_text = voice_info["text"]
     else:
         if not args.ref_audio or not args.ref_text:
