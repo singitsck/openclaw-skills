@@ -74,7 +74,7 @@ curl http://127.0.0.1:9880/docs
 ### Python API 使用
 
 ```python
-from gpt_sovits_cli import generate_voice
+from gpt_sovits_cli import generate_voice, get_character_preset
 
 # 生成纳西妲语音
 output_path = generate_voice(
@@ -83,24 +83,54 @@ output_path = generate_voice(
     ref_text="嗯，這是只存在於理論中的舉動，我甚至不確定有誰敢做這樣的事",  # 必须匹配音频内容！
     output_path="output.wav"
 )
+
+# 使用洛琪希预设
+preset = get_character_preset("roxy", "normal")
+output_path = generate_voice(
+    text="ルディ、お疲れ様です",
+    ref_audio_path=preset["ref_audio"],
+    ref_text=preset["ref_text"],
+    output_path="output.wav"
+)
 ```
 
 ### CLI 推理
 
 ```bash
-python3 scripts/gpt_sovits_cli.py \
+# 使用预设角色 (洛琪希)
+python3 scripts/gpt_sovits_cli.py generate \
+  --text "ルディ、お疲れ様です" \
+  --character roxy \
+  --emotion normal \
+  --output output.wav
+
+# 使用不同情绪
+python3 scripts/gpt_sovits_cli.py generate \
+  --text "えっと、その..." \
+  --character roxy \
+  --emotion shy \
+  --output output.wav
+
+# 手动指定参数
+python3 scripts/gpt_sovits_cli.py generate \
   --text "你好，我是纳西妲" \
   --ref-audio /path/to/Nahida.wav \
   --ref-text "嗯，這是只存在於理論中的舉動..." \
   --output output.wav
 ```
 
+### 列出可用角色
+
+```bash
+python3 scripts/gpt_sovits_cli.py list
+```
+
 ### 下载角色模型
 
 ```bash
-python3 scripts/gpt_sovits_cli.py \
-  --download-model BigPancake01/GPT-SoVITS_Mihoyo \
-  --character nahida
+python3 scripts/gpt_sovits_cli.py download \
+  --repo BigPancake01/GPT-SoVITS_Mihoyo \
+  --name nahida
 ```
 
 ## CLI 训练
@@ -119,7 +149,33 @@ python3 GPT_SoVITS/s2_train.py -c configs/s2.yaml
 
 ## Available Models
 
-### 已下载角色模型
+### 本地角色模型 (SSD)
+| 角色 | 来源 | 语言 | 模型位置 |
+|------|------|------|----------|
+| 💧 洛琪希 (Roxy) | 本地训练 | 日文 | `character_models/roxy/` |
+
+**洛琪希预设配置:**
+```python
+# 使用预设生成
+from gpt_sovits_cli import CHARACTER_PRESETS
+
+roxy = CHARACTER_PRESETS["roxy"]
+# 正常語氣
+ref = roxy["ref_audios"]["normal"]
+# 害羞語氣
+ref = roxy["ref_audios"]["shy"]
+# 戰鬥/魔法詠唱
+ref = roxy["ref_audios"]["battle"]
+```
+
+**参考音频:**
+| 情绪 | 文件 | 参考文本 |
+|------|------|----------|
+| normal | `roxy_normal.wav` | 「はいそうですねルディ身長大きくなりましたね」 |
+| shy | `roxy_shy.wav` | 「えっと、ルーデオスさん、その、ありがとうございました」 |
+| battle | `roxy_battle.wav` | 「はあ姉よ全てを押し流しあらゆるものを駆逐せよ」 |
+
+### HuggingFace 角色模型
 | 角色 | 来源 | 语言 |
 |------|------|------|
 | 纳西妲 (Nahida) | BigPancake01/GPT-SoVITS_Mihoyo | 中文 |
