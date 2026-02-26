@@ -74,7 +74,9 @@ def format_text_for_role(text, role_id):
         # japanese_cleaners2 - plain text
         return text
 
-def generate_voice(text, role_id=1, speaker=None, speed=1.0, output_path=None, device='cpu'):
+def generate_voice(text, role_id=1, speaker=None, speed=1.0, 
+                   noise_scale=None, noise_scale_w=None, length_scale=None,
+                   output_path=None, device='cpu'):
     """
     Generate voice using MoE TTS
     
@@ -127,6 +129,20 @@ def generate_voice(text, role_id=1, speaker=None, speed=1.0, output_path=None, d
     # Generate
     stn_tst = get_text(formatted_text, hps, no_grad=no_grad, LongTensor=LongTensor)
     
+    # Set default parameters for quality
+    if noise_scale is None:
+        noise_scale = 0.667
+    if noise_scale_w is None:
+        noise_scale_w = 0.8
+    if length_scale is None:
+        length_scale = 1.0 / speed
+    
+    # Quality optimization based on role
+    cleaner = detect_cleaner_type(role_id)
+    if cleaner == 'japanese_cleaners2':
+        # Role 1 (Hiyori): slightly more lively
+        noise_scale = min(noise_scale * 1.1, 0.8)
+    
     with no_grad():
         x_tst = stn_tst.unsqueeze(0).to(device)
         x_tst_lengths = LongTensor([stn_tst.size(0)]).to(device)
@@ -135,10 +151,30 @@ def generate_voice(text, role_id=1, speaker=None, speed=1.0, output_path=None, d
         audio = model.infer(
             x_tst, x_tst_lengths,
             sid=sid,
-            noise_scale=.667,
-            noise_scale_w=0.8,
-            length_scale=1.0 / speed
+            noise_scale=noise_scale,
+            noise_scale_w=noise_scale_w,
+            length_scale=length_scale
         )[0][0, 0].data.cpu().float().numpy()
+    
+    # Post-processing for quality optimization
+    # 1. Normalize volume
+    max_amp = np.max(np.abs(audio))
+    if max_amp > 0:
+        target_db = -20  # Target -20dB
+        current_db = 20 * np.log10(max_amp)
+        gain = 10 ** ((target_db - current_db) / 20)
+        audio = audio * gain
+    
+    # 2. Soft clipping to prevent distortion
+    audio = np.tanh(audio)
+    
+    # 3. Fade in/out
+    fade_length = min(1000, len(audio) // 10)
+    if fade_length > 0:
+        fade_in = np.linspace(0, 1, fade_length)
+        fade_out = np.linspace(1, 0, fade_length)
+        audio[:fade_length] *= fade_in
+        audio[-fade_length:] *= fade_out
     
     # Convert to int16
     audio_int16 = np.clip(audio * 32767, -32768, 32767).astype(np.int16)
@@ -179,6 +215,8 @@ def main():
     parser.add_argument('--role', '-r', type=int, default=1, help='Role ID (1, 5, etc.)')
     parser.add_argument('--speaker', '-s', default=None, help='Speaker name')
     parser.add_argument('--speed', type=float, default=1.0, help='Speech speed')
+    parser.add_argument('--noise-scale', type=float, default=None, help='Noise scale (0.0-1.0, default: auto)')
+    parser.add_argument('--noise-scale-w', type=float, default=None, help='Noise scale w (0.0-1.0, default: auto)')
     parser.add_argument('--output', '-o', default=None, help='Output file path')
     parser.add_argument('--list', '-l', action='store_true', help='List speakers for role')
     
@@ -193,6 +231,8 @@ def main():
         role_id=args.role,
         speaker=args.speaker,
         speed=args.speed,
+        noise_scale=args.noise_scale,
+        noise_scale_w=args.noise_scale_w,
         output_path=args.output
     )
     
