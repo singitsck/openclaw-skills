@@ -1,0 +1,28 @@
+#!/bin/bash
+#
+# 妃愛 & 七海语音生成快捷命令
+# 使用方法: ./sayhiyori "文本" 或 ./saynanami "文本"
+#
+
+cd ~/.openclaw/moe-tts
+source venv/bin/activate
+
+SCRIPT="$HOME/.agents/skills/moe-tts/scripts/quick_gen.py"
+
+if [ "$1" = "hiyori" ]; then
+    shift
+    python3 "$SCRIPT" "$@" --character hiyori
+elif [ "$1" = "nanami" ]; then
+    shift
+    python3 "$SCRIPT" "$@" --character nanami
+elif [ "$1" = "both" ]; then
+    shift
+    python3 "$SCRIPT" "$@" --character both
+else
+    echo "用法: $0 {hiyori|nanami|both} '文本' [--speed 1.0]"
+    echo ""
+    echo "示例:"
+    echo "  $0 hiyori 'おはようございます'"
+    echo "  $0 nanami 'こんにちは' --speed 1.2"
+    echo "  $0 both 'ひよひよ～'"
+fi
