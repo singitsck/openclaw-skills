@@ -129,6 +129,35 @@ print(f"Generated: {output}")
 | sad | 悲傷難過 |
 | determined | 堅定決心 |
 
+### 💧 Roxy (洛琪希·米格路迪亞)
+- **Character**: 洛琪希·米格路迪亞 from 無職轉生
+- **Style**: 水聖級魔術師，冷靜沉著的藍髮師傅，帶有魔術詠唱的莊嚴感
+- **Reference**: ~/.openclaw/references/roxy/reference.wav
+- **Text**: 「はいそうですねルディ身長大きくなりましたね」
+
+**Supported Emotions:**
+| Emotion | Description | Sample Text |
+|---------|-------------|-------------|
+| normal | 正常語氣 | 「はいそうですねルディ身長大きくなりましたね」 |
+| happy | 開心、欣慰 | 「おめでとうございますこれであなたは彗星級魔術師です」 |
+| gentle | 溫柔、安慰 | 「すぐに怖くなくなりますよ。私がついていますから安心してください」 |
+| sad | 悲傷、遺憾 | 「残念です。これで本当に私が教えられることもなくなってしまいました」 |
+| shy | 害羞、靦腆 | 「えっと、ルーデオスさん、その、ありがとうございました」 |
+| teasing | 調皮、捉弄 | 「ははーん、さては怖いんですねー」 |
+| proud | 自豪、驕傲 | 「ちっちゃくありませんあれは私の髪を見て驚いてたんですよ」 |
+| worried | 擔心、憂慮 | 「そうですね落ち込んでいるというのは少し心配ですが」 |
+- **Reference**: ~/.openclaw/references/rem/rem_reference.wav
+- **Text**: 「ここから始めましょう。1から…いいえ、ゼロから」
+
+**Supported Emotions:**
+| Emotion | Description |
+|---------|-------------|
+| normal | 正常語氣 |
+| happy | 開心興奮 |
+| gentle | 溫柔體貼 |
+| sad | 悲傷難過 |
+| determined | 堅定決心 |
+
 ## Emotion System
 
 ### How It Works
