@@ -2,6 +2,91 @@
 
 GPT-SoVITS 命令行工具封装，支持 Zero-shot TTS 语音生成和模型训练。
 
+## Agent 共享配置 (多 Agent 使用)
+
+### 環境要求
+所有 Agent 使用此 Skill 時需要確保：
+
+1. **GPT-SoVITS 已部署** 到 `/Volumes/SSD/GPT-SoVITS`
+2. **SV 模型已下載** `pretrained_models/sv/pretrained_eres2netv2w24s4ep4.ckpt` (103MB)
+3. **洛琪希模型文件** 存在於 `character_models/roxy/`
+
+### 快速生成範例 (供其他 Agent 使用)
+
+```python
+import sys
+sys.path.insert(0, '/Volumes/SSD/GPT-SoVITS')
+
+import torch
+import soundfile as sf
+import numpy as np
+from GPT_SoVITS.TTS_infer_pack.TTS import TTS, TTS_Config
+
+def generate_roxy_voice(text, output_path, emotion="normal"):
+    '''
+    生成洛琪希語音
+    
+    Args:
+        text: 日文文本
+        output_path: 輸出文件路徑
+        emotion: normal/shy/battle
+    '''
+    # 情緒配置
+    emotions = {
+        "normal": {
+            "ref": "character_models/roxy/ref_audios/roxy_normal.wav",
+            "text": "はいそうですねルディ身長大きくなりましたね"
+        },
+        "shy": {
+            "ref": "character_models/roxy/ref_audios/roxy_shy.wav", 
+            "text": "えっと、ルーデオスさん、その、ありがとうございました"
+        },
+        "battle": {
+            "ref": "character_models/roxy/ref_audios/roxy_battle.wav",
+            "text": "はあ姉よ全てを押し流しあらゆるものを駆逐せよ"
+        }
+    }
+    
+    config = TTS_Config("/Volumes/SSD/GPT-SoVITS/GPT_SoVITS/configs/tts_infer.yaml")
+    tts = TTS(config)
+    tts.init_vits_weights("/Volumes/SSD/GPT-SoVITS/GPT_SoVITS/character_models/roxy/洛琪希.pth")
+    tts.init_t2s_weights("/Volumes/SSD/GPT-SoVITS/GPT_SoVITS/character_models/roxy/洛琪希.ckpt")
+    
+    emo = emotions.get(emotion, emotions["normal"])
+    
+    inputs = {
+        "text": text,
+        "text_lang": "ja",
+        "ref_audio_path": f"/Volumes/SSD/GPT-SoVITS/GPT_SoVITS/{emo['ref']}",
+        "prompt_text": emo["text"],
+        "prompt_lang": "ja",
+        "text_split_method": "cut5",
+        "batch_size": 1,
+        "speed_factor": 1.0,
+    }
+    
+    all_audio = []
+    sample_rate = 32000
+    for item in tts.run(inputs):
+        if isinstance(item, tuple):
+            sample_rate, audio = item
+            all_audio.append(audio)
+    
+    if all_audio:
+        final_audio = np.concatenate(all_audio)
+        sf.write(output_path, final_audio, sample_rate)
+        return f"Generated: {output_path}, Duration: {len(final_audio)/sample_rate:.2f}s"
+    return "Failed"
+
+# 使用範例
+generate_roxy_voice("ルディ、お疲れ様です", "/path/to/output.wav", "normal")
+```
+
+### 重要提醒
+- **必須使用直接推理方式**，不要使用 API 方式 (API 會有問題)
+- **參考音頻文本必須正確匹配**，否則會輸出火星語
+- **SV 模型必須存在**，否則會有電音問題
+
 ## Overview
 
 基于 GPT-SoVITS 项目的 CLI 封装，提供：
