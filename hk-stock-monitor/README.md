@@ -98,3 +98,32 @@ WATCHLIST = ['2513.HK', '0100.HK', '0700.HK']  # 添加或修改
 ---
 
 *最後更新: 2026-03-02*
+
+---
+
+## ⏰ OpenClaw Cron 配置（可選）
+
+### 方法 1：使用 OpenClaw Cron（推薦）
+
+在 OpenClaw Web 界面或 CLI 添加定時任務：
+
+```bash
+openclaw cron add \
+  --name "hk-stock-monitor" \
+  --cron "5 17 * * 1-5" \
+  --description "港股監控：每日17:05監控2513.HK和0100.HK" \
+  --message "執行港股監控：運行 ~/.openclaw/skills/hk-stock-monitor/run_monitor.sh" \
+  --session "isolated" \
+  --announce
+```
+
+查看和管理：http://127.0.0.1:18789/cron
+
+### 方法 2：使用系統 Crontab
+
+```bash
+crontab -e
+
+# 添加以下行（週一至週五 17:05 運行）
+5 17 * * 1-5 cd ~/.openclaw/skills/hk-stock-monitor && ./run_monitor.sh >> logs/cron.log 2>&1
+```
