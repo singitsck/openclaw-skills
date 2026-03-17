@@ -6,9 +6,11 @@ Custom skills for OpenClaw agent.
 
 ### Anthropic Skills (Adapted for OpenClaw)
 
-Three professional skills originally from Anthropic, adapted for OpenClaw with `metadata.openclaw` configuration.
+Professional skills originally from Anthropic, adapted for OpenClaw with `metadata.openclaw` configuration.
 
-#### 1. PPTX Anthropic (`pptx-anthropic/`)
+#### Creative & Design
+
+**1. PPTX Anthropic (`pptx-anthropic/`)** 📊
 Professional PowerPoint creation with advanced design principles.
 - **New**: Professional Design Principles for refined presentations
   - Typography hierarchy (52pt/36pt/22pt system)
@@ -19,14 +21,84 @@ Professional PowerPoint creation with advanced design principles.
 - **Guides**: `design-examples.md`, `quick-reference.md`
 - Parallel slide creation with `sessions_spawn`
 
-#### 2. PDF Anthropic (`pdf-anthropic/`)
+**2. Algorithmic Art (`algorithmic-art/`)** 🎨
+Generative art creation using p5.js with seeded randomness.
+- Flow fields, particle systems, noise functions
+- Interactive parameter exploration
+- Seeded randomness for reproducible art
+- Output: HTML artifacts with embedded p5.js
+
+**3. Theme Factory (`theme-factory/`)** 🎭
+Theme creation and management system.
+- Pre-built themes: Arctic Frost, Botanical Garden, Desert Rose, etc.
+- Theme showcase and documentation
+- Consistent design language across projects
+
+**4. Slack GIF Creator (`slack-gif-creator/`)** 🎬
+Custom GIF creation optimized for Slack.
+- Frame composition and animation
+- Easing functions for smooth transitions
+- Optimized file sizes for Slack compatibility
+
+#### Document Skills
+
+**5. PDF Anthropic (`pdf-anthropic/`)** 📄
 PDF form filling and manipulation utilities.
 - Fill fillable PDF forms
 - Extract form field information
 - Convert PDF to images for validation
 - Create validation images with bounding boxes
 
-#### 3. Skill Creator Anthropic (`skill-creator-anthropic/`)
+**6. DOCX Anthropic (`docx/`)** 📝
+Word document processing and editing.
+- Document creation and formatting
+- Track changes and comments
+- Accept/reject changes programmatically
+- Office Open XML manipulation
+
+**7. XLSX Anthropic (`xlsx/`)** 📊
+Excel spreadsheet processing.
+- Spreadsheet creation and editing
+- Formula calculation and recalculation
+- Data validation and formatting
+- Chart generation
+
+#### Development & Technical
+
+**8. Frontend Design (`frontend-design/`)** 💻
+Frontend development and design utilities.
+- Component-based design system
+- Responsive layout patterns
+- CSS and styling best practices
+
+**9. MCP Builder (`mcp-builder/`)** 🔧
+MCP (Model Context Protocol) server generator.
+- Generate MCP servers in Node.js or Python
+- Best practices for MCP implementation
+- Server evaluation and testing tools
+
+**10. Webapp Testing (`webapp-testing/`)** 🧪
+Web application testing automation.
+- Playwright-based browser automation
+- Element discovery and interaction
+- Console logging and error detection
+- Static HTML automation examples
+
+**11. Web Artifacts Builder (`web-artifacts-builder/`)** 🌐
+Interactive web artifact creation.
+- Single-file HTML artifacts
+- Shadcn UI components integration
+- Bundle and deployment scripts
+
+#### Enterprise & Communication
+
+**12. Doc Coauthoring (`doc-coauthoring/`)** ✍️
+Document collaboration and coauthoring workflows.
+- Multi-user editing patterns
+- Version control for documents
+- Collaborative review processes
+
+**13. Skill Creator Anthropic (`skill-creator-anthropic/`)** 🛠️
 Skill creation and management utilities.
 - Skill packaging and validation
 - Benchmark aggregation
