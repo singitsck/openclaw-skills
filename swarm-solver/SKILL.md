@@ -24,8 +24,17 @@ Use cases: Software development, market analysis, multi-step collaboration, comp
 
 ## Model Switching Rules (MUST FOLLOW)
 
+### Available Models
+
+| Model | Role | Use Case | Alias |
+|-------|------|----------|-------|
+| `kimi-coding/k2p5` | Worker | Simple tasks, fast responses | `Kimi K2.5` |
+| `kimi-coding/kimi-k2-thinking` | Supervisor | Complex planning, deep reasoning | - |
+| `minimax-portal/MiniMax-M2.7-highspeed` | Worker | Fast, cost-effective | `minimax-m2.7-highspeed` |
+
 ### Default Model
 - `kimi-coding/k2p5` – For simple tasks or Worker Agents
+- Alternative: `minimax-portal/MiniMax-M2.7-highspeed` – For cost-sensitive scenarios
 
 ### Switch Conditions
 Switch to `kimi-coding/kimi-k2-thinking` as Supervisor when:
@@ -34,15 +43,46 @@ Switch to `kimi-coding/kimi-k2-thinking` as Supervisor when:
 - Sustained collaboration required
 - User specifies "complex scenario"
 
-### Switch Protocol
-1. In your first Thought, output: `Switching to kimi-k2-thinking for complex swarm handling`
-2. Assume system has switched (or call session_status to switch)
-3. Continue as Supervisor Agent
+### Switch Protocol (CORRECT WAY)
+
+**Step 1: Check current model**
+```bash
+session_status | grep "model"
+```
+
+**Step 2: Switch to thinking model**
+```bash
+session_status --model kimi-coding/kimi-k2-thinking
+```
+
+**Step 3: Verify switch**
+```bash
+session_status | grep -q "kimi-k2-thinking" && echo "✓ Model switched" || echo "✗ Switch failed"
+```
+
+**Step 4: Confirm in thought**
+```
+Thought: Successfully switched to kimi-k2-thinking. Now acting as Supervisor Agent.
+```
+
+### Switch Back (Optional)
+After complex planning is done, switch back to save costs:
+```bash
+session_status --model kimi-coding/k2p5
+```
 
 ### Fallback
 If k2-thinking unavailable or slow:
-```
-Fallback to default model (k2p5) due to availability
+```bash
+# Try 2 times with 5s delay
+for i in 1 2; do
+  session_status --model kimi-coding/kimi-k2-thinking && break
+  sleep 5
+done
+
+# If still failing, fallback
+echo "Fallback to default model (k2p5) due to availability"
+session_status --model kimi-coding/k2p5
 ```
 
 ## Execution Steps
@@ -70,6 +110,155 @@ For each sub-task:
 ### Step 5: Cleanup
 - Clean up agents
 - Present final results to user
+
+## Error Handling & Recovery
+
+### Worker Agent Failure Handling
+
+**When a worker agent fails or gets stuck:**
+
+1. **Detect Failure** (Every 30 seconds)
+```bash
+subagents list --compact
+```
+
+2. **Identify Failed Agents**
+   - Status = `error`
+   - Status = `idle` for >5 minutes without progress
+   - High token usage but no output
+
+3. **Recovery Strategy**
+
+| Failure Type | Action | Max Retries |
+|-------------|--------|-------------|
+| Timeout | Kill & respawn with longer timeout | 2 |
+| Error | Kill & respawn with simplified task | 2 |
+| No progress | Send message via `sessions_send` to check status | 1 |
+
+4. **Kill and Retry**
+```bash
+# Kill failed agent
+subagents kill --target worker-1
+
+# Respawn with retry count tracking
+sessions_spawn \
+  --task "[SIMPLIFIED TASK] Original task failed. Retry with reduced scope." \
+  --label worker-1-retry \
+  --model "kimi-coding/k2p5" \
+  --cleanup delete
+```
+
+5. **Update Status**
+```markdown
+# In swarm-status.md
+| Agent | Status | Retries | Notes |
+|-------|--------|---------|-------|
+| worker-1 | failed → retry-1 | 1/2 | Simplified task |
+```
+
+6. **If All Retries Fail**
+   - Log error to `swarm-status.md` Blockers
+   - Continue with partial results
+   - Notify Supervisor to adjust plan
+
+### Supervisor Decision Tree
+```
+Worker Failed?
+├── Yes → Retry count < 2?
+│   ├── Yes → Respawn with simplified task
+│   └── No → Mark as failed, log to Blockers
+│       └── Can continue without this worker?
+│           ├── Yes → Continue with remaining workers
+│           └── No → Abort and report to user
+└── No → Continue normal execution
+```
+
+## Blackboard File Structure (Concurrency-Safe)
+
+### File Organization
+To avoid concurrent write conflicts, use **one file per agent**:
+
+```
+swarm-plan.md              # Supervisor only (read/write)
+swarm-status.md            # Supervisor only (read/write)
+swarm-results-research.md  # Research Agent only (write)
+swarm-results-dev.md       # Developer Agent only (write)
+swarm-results-design.md    # Designer Agent only (write)
+swarm-results-test.md      # Tester Agent only (write)
+swarm-results-integrated.md # Supervisor only (write after collection)
+swarm-reflection.md        # Reflection Agent (optional)
+```
+
+### Write Rules
+1. **Each agent ONLY writes to their assigned result file**
+2. **Use `--append` flag instead of overwrite**
+3. **Supervisor is the ONLY entity that can write to integrated file**
+4. **Status file is updated only by Supervisor**
+
+### Supervisor Integration Process
+```bash
+# 1. Read all individual result files
+read swarm-results-research.md
+read swarm-results-dev.md
+read swarm-results-design.md
+
+# 2. Integrate and write to combined file
+write swarm-results-integrated.md << 'EOF'
+# Combined Results
+
+## Research
+[Content from research file]
+
+## Development
+[Content from dev file]
+
+## Design
+[Content from design file]
+EOF
+```
+
+## Dynamic Timeout Configuration
+
+### Task-Type Based Timeouts
+Instead of fixed 5 minutes, use dynamic timeouts:
+
+| Task Type | Timeout | Reason |
+|-----------|---------|--------|
+| `web_search` | 180s | Usually fast |
+| `code_generation` | 600s | Needs time for complex logic |
+| `testing` | 120s | Should be quick |
+| `analysis` | 300s | Medium complexity |
+| `design` | 240s | Creative work |
+
+### Usage
+```bash
+sessions_spawn \
+  --task "Generate React component" \
+  --label dev-worker \
+  --model "kimi-coding/k2p5" \
+  --runTimeoutSeconds 600  # 10 min for code gen
+  --cleanup delete
+```
+
+### Pre-Timeout Warning
+For long-running tasks, warn 60 seconds before timeout:
+```bash
+# Spawn with warning
+sessions_spawn \
+  --task "[Task with progress updates] Report progress every 2 minutes" \
+  --label long-task \
+  --runTimeoutSeconds 600
+
+# In worker: Send progress updates
+sessions_send --label supervisor --message "Progress: 50% complete"
+```
+
+### Extend Timeout Dynamically
+If a task needs more time:
+1. Worker sends "Need more time" message
+2. Supervisor kills current agent
+3. Respawn with extended timeout
+4. Worker resumes from saved progress
 
 ## Agent Role Templates
 
