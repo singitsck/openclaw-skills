@@ -1,0 +1,77 @@
+name: code-first
+description: |
+  Code-First Pattern for software development tasks.
+  Use this pattern for feature implementation, bug fixes, and refactoring.
+
+workflow:
+  phases:
+    - id: explore
+      name: Exploration Phase
+      description: Understand codebase and identify relevant components
+      parallel: false
+      agent_count: 1
+      model: minimax-m2.7
+      timeout: 180s
+      task_template: |
+        Explore codebase to understand:
+        - Project structure
+        - Existing patterns for [FEATURE]
+        - Files that need modification
+        - Dependencies and integrations
+        Save findings to codebase-map.md
+      output: "codebase-map.md"
+      
+    - id: implement
+      name: Implementation Phase
+      description: Write code based on exploration
+      parallel: false
+      agent_count: 1
+      model: k2p5
+      timeout: 600s
+      task_template: |
+        Implement [FEATURE] based on codebase-map.md.
+        Follow existing code patterns.
+        Write clean, documented code.
+      input_from: explore
+      
+    - id: test
+      name: Testing Phase
+      description: Write and run tests
+      parallel: false
+      agent_count: 1
+      model: minimax-m2.7
+      timeout: 300s
+      task_template: |
+        Write comprehensive tests for [FEATURE].
+        Run tests and report results.
+        Save test results to test-results.md
+      
+    - id: review
+      name: Review Phase
+      description: Code review and feedback
+      parallel: false
+      agent_count: 1
+      model: k2p5
+      timeout: 240s
+      task_template: |
+        Review implementation and tests.
+        Check for:
+        - Code quality
+        - Edge cases
+        - Security issues
+        - Performance concerns
+        Provide review feedback.
+
+error_handling:
+  on_test_failure:
+    action: return_to_implement
+    max_iterations: 3
+  on_review_failure:
+    action: return_to_implement
+    max_iterations: 2
+
+write_rules:
+  - explorer: "codebase-map.md only"
+  - developer: "code files only"
+  - tester: "test files and test-results.md"
+  - reviewer: "review feedback (read-only)"

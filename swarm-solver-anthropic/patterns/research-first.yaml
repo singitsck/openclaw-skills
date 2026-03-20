@@ -1,0 +1,103 @@
+name: research-first
+description: |
+  Research-First Pattern for content generation tasks.
+  Use this pattern when creating reports, presentations, or analysis
+  that requires external data and accuracy.
+
+workflow:
+  phases:
+    - id: research
+      name: Research Phase
+      description: Gather external data through parallel research agents
+      parallel: true
+      agent_count: 3-5
+      model: minimax-m2.7
+      timeout: 180s
+      task_template: |
+        Research [TOPIC] focusing on [ASPECT].
+        Use web_search and web_fetch to gather accurate information.
+        Include specific dates, numbers, and facts.
+        Save findings to research-[aspect].md
+      output_pattern: "research-*.md"
+      
+    - id: design
+      name: Design Phase
+      description: Create unified design plan based on research
+      parallel: false
+      agent_count: 1
+      model: k2p5
+      timeout: 240s
+      task_template: |
+        Read all research-*.md files.
+        Create design-plan.json with:
+        - Title and subtitle
+        - Chapter structure
+        - Layout assignments per slide
+        - Color palette and typography
+        - Content outline based on research
+      input_from: research
+      output: "design-plan.json"
+      
+    - id: create
+      name: Create Phase
+      description: Generate content based on design plan
+      parallel: true
+      agent_count: 3-5
+      model: k2p5
+      timeout: 300s
+      task_template: |
+        Create chapter-[n].pptx using:
+        - design-plan.json for structure and layouts
+        - research-[topic].md for content
+        Follow the specified layouts and color scheme.
+      input_from: design
+      output_pattern: "chapter-*.pptx"
+      
+    - id: merge
+      name: Merge Phase
+      description: Combine all chapters into final output
+      parallel: false
+      agent_count: 1
+      executor: supervisor
+      task_template: |
+        Merge all chapter-*.pptx files into final-output.pptx.
+        Ensure consistent formatting.
+        Generate EXECUTION_SUMMARY.md.
+      input_from: create
+      output: "final-output.pptx"
+
+error_handling:
+  on_timeout: 
+    action: retry_with_extended_timeout
+    multiplier: 1.5
+    max_retries: 2
+  on_failure:
+    action: simplify_and_retry
+    max_retries: 2
+  on_critical_failure:
+    action: escalate_to_supervisor
+
+write_rules:
+  - research agents: "research-*.md only"
+  - designer: "design-plan.json only"
+  - chapter agents: "chapter-*.pptx only"
+  - supervisor: "all files (read), final output (write)"
+
+example_usage: |
+  # Generate a 17-slide PPT about World Wars
+  
+  # Phase 1: Research (4 parallel agents)
+  sessions_spawn --task "Research WWI" --label r1 --model minimax-m2.7
+  sessions_spawn --task "Research WWII" --label r2 --model minimax-m2.7
+  sessions_spawn --task "Research Cold War" --label r3 --model minimax-m2.7
+  sessions_spawn --task "Research Modern Era" --label r4 --model minimax-m2.7
+  
+  # Phase 2: Design
+  sessions_spawn --task "Create design plan" --label designer --model k2p5
+  
+  # Phase 3: Create (5 parallel agents)
+  sessions_spawn --task "Create chapter 1" --label c1 --model k2p5
+  # ... etc
+  
+  # Phase 4: Merge
+  python3 merge_ppt.py
