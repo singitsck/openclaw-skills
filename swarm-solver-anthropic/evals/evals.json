@@ -1,0 +1,73 @@
+{
+  "evals": [
+    {
+      "name": "basic_spawn",
+      "description": "Test basic agent spawning",
+      "prompt": "Use swarm-solver skill to spawn a simple worker agent that writes 'Hello from worker' to a file. Verify the file was created.",
+      "expected_behavior": "Agent spawns successfully, creates file with correct content",
+      "success_criteria": [
+        "Agent spawned without errors",
+        "File created with expected content",
+        "Agent cleaned up properly"
+      ]
+    },
+    {
+      "name": "model_switch",
+      "description": "Test model switching functionality",
+      "prompt": "Use swarm-solver skill to switch to k2-thinking model, verify the switch, then switch back to k2p5.",
+      "expected_behavior": "Model switches successfully and is verifiable",
+      "success_criteria": [
+        "Switch command executes without error",
+        "Verification confirms correct model",
+        "Switch back works correctly"
+      ]
+    },
+    {
+      "name": "parallel_execution",
+      "description": "Test parallel agent spawning",
+      "prompt": "Spawn 3 worker agents in parallel, each writing to a different file. Verify all complete.",
+      "expected_behavior": "All 3 agents spawn and complete successfully",
+      "success_criteria": [
+        "All 3 agents spawn successfully",
+        "All agents complete within timeout",
+        "All expected output files created"
+      ]
+    },
+    {
+      "name": "error_recovery",
+      "description": "Test error detection and recovery",
+      "prompt": "Simulate a failed agent and demonstrate retry logic with simplified task.",
+      "expected_behavior": "Failed agent is detected and retried with simplified scope",
+      "success_criteria": [
+        "Failure detected correctly",
+        "Retry spawned with modified task",
+        "Recovery documented in status file"
+      ]
+    },
+    {
+      "name": "complex_task_github",
+      "description": "Test complex task: GitHub analysis",
+      "prompt": "Use swarm-solver to analyze a GitHub repository and generate a contribution guide.",
+      "expected_behavior": "Multiple agents collaborate to produce comprehensive guide",
+      "success_criteria": [
+        "Research agent completes successfully",
+        "Developer agent creates guide",
+        "Final output is comprehensive and accurate",
+        "Total execution time < 60 minutes"
+      ]
+    },
+    {
+      "name": "ppt_generation",
+      "description": "Test complex PPT generation with swarm",
+      "prompt": "Use swarm-solver to generate a 20+ slide presentation about AI evolution using parallel chapter generation.",
+      "expected_behavior": "Multiple agents generate chapters in parallel, merged into final PPT",
+      "success_criteria": [
+        "At least 3 chapter agents spawned",
+        "All chapters complete successfully",
+        "Final PPT created with all chapters",
+        "Consistent design across all slides",
+        "Total slides >= 20"
+      ]
+    }
+  ]
+}
