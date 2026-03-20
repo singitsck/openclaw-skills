@@ -32,6 +32,37 @@ Use cases: Software development, market analysis, multi-step collaboration, comp
 | `kimi-coding/kimi-k2-thinking` | Supervisor | Complex planning, deep reasoning | - |
 | `minimax-portal/MiniMax-M2.7-highspeed` | Worker | Fast, cost-effective | `minimax-m2.7-highspeed` |
 
+## 3-Tier Model Selection System (Recommended)
+
+For optimal cost-performance balance, use the 3-Tier system:
+
+| Tier | Model | Cost | Speed | Use When |
+|------|-------|------|-------|----------|
+| **Tier-1** | `minimax-portal/MiniMax-M2.7-highspeed` | 1× | ⚡ Fastest | Research, testing, simple tasks |
+| **Tier-2** | `kimi-coding/k2p5` | 2× | 🟡 Balanced | Code generation, general tasks |
+| **Tier-3** | `kimi-coding/kimi-k2-thinking` | 4× | 🐢 Deliberate | Supervisor, complex planning |
+
+### Quick Selection Guide
+
+| Task Type | Recommended Tier | Model |
+|-----------|-----------------|-------|
+| Web search, data extraction | Tier-1 | MiniMax M2.7 |
+| Simple validation, testing | Tier-1 | MiniMax M2.7 |
+| Code generation, refactoring | Tier-2 | k2p5 |
+| System design (medium) | Tier-2 | k2p5 |
+| Complex architecture | Tier-3 | k2-thinking |
+| Multi-agent coordination | Tier-3 | k2-thinking |
+
+### Cost Optimization Rules
+
+1. **Never start with the most expensive model** – Begin with Tier-1
+2. **Use Tier-1 for 70% of Worker tasks** – Research, testing, validation
+3. **Reserve Tier-3 for Supervisor only** – Unless task explicitly requires deep reasoning
+4. **Auto-downgrade on budget exceed** – If预估 tokens > 50k, use Tier-1
+5. **Batch tasks by tier** – Group similar complexity tasks together
+
+**Expected savings: 40-60% cost reduction while maintaining quality.**
+
 ### Default Model
 - `kimi-coding/k2p5` – For simple tasks or Worker Agents
 - Alternative: `minimax-portal/MiniMax-M2.7-highspeed` – For cost-sensitive scenarios
