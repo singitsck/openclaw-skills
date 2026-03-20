@@ -1,4 +1,44 @@
+---
+name: swarm-solver
+description: |
+  ⚠️ DEPRECATED: Please use swarm-solver-anthropic instead.
+  
+  This skill is deprecated. Use swarm-solver-anthropic for:
+  - Pattern-based workflows
+  - Agency-Agents integration (156 roles)
+  - Subagent Library support
+  - Complete 5-Layer architecture
+  
+  Original description: Multi-Agent Swarm Solver with automatic model switching.
+  
+metadata:
+  openclaw:
+    emoji: "🐝"
+    requires:
+      bins: ["bash", "python3"]
+    tags: ["deprecated", "multi-agent", "swarm"]
+    author: "singit"
+    version: "2.0.0-deprecated"
+    deprecated: true
+    replacement: "swarm-solver-anthropic"
+---
+
 # Multi-Agent Swarm Solver with Model Switch
+
+> ⚠️ **DEPRECATED**: This skill is deprecated. Please use `swarm-solver-anthropic` instead.
+> 
+> **Why?** `swarm-solver-anthropic` includes:
+> - ✅ Pattern-based workflows (Research-First, Code-First)
+> - ✅ Agency-Agents integration (156 professional roles)
+> - ✅ Subagent Library support
+> - ✅ Complete 5-Layer architecture
+> - ✅ More robust error handling
+> 
+> **Location**: `~/.openclaw/openclaw-skills/swarm-solver-anthropic/`
+> 
+> **Migration**: Simply replace `swarm-solver` with `swarm-solver-anthropic` in your workflow.
+
+---
 
 ## Description
 
