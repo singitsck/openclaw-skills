@@ -1,0 +1,80 @@
+# ============================================
+# OpenClaw Skills - Security-focused .gitignore
+# 防止敏感資料洩漏到 GitHub
+# ============================================
+
+# ============================================================================
+# 🔴 CRITICAL: 個人財務敏感資料 - 絕對不能上傳 GitHub
+# ============================================================================
+
+# 郵件內容（含銀行交易詳情）
+raw/
+*.eml
+*.msg
+email_content/
+mail_downloads/
+
+# 財務報表（含個人交易記錄）
+*.csv
+processed/
+reports/*.html
+reports/*.pdf
+discord_summary_*.txt
+
+# 配置文件（含密碼和 API Keys）
+config.json
+config.yaml
+config.yml
+.env
+.env.local
+.env.production
+*.key
+*.pem
+secrets/
+
+# 日誌檔案（可能含敏感資訊）
+*.log
+logs/
+
+# ============================================================================
+# 🟡 WARNING: 個人資料和暫存檔
+# ============================================================================
+
+# macOS 系統檔案
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# 編輯器暫存
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Python 暫存
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# 測試產生的資料
+test_data/
+test_output/
+.pytest_cache/
+
+# ============================================================================
+# 🟢 DEVELOPMENT: 開發相關（可選）
+# ============================================================================
+
+# 依賴套件
+node_modules/
+venv/
+env/
+ENV/
+
+# 建置產物
+dist/
+build/
+*.egg-info/

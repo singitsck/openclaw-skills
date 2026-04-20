@@ -1,0 +1,6 @@
+#!/bin/bash
+# Qwen3-TTS Voice Cloning Tool Wrapper
+# Usage: qwen3-tts [options]
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+python3 "${SCRIPT_DIR}/qwen3_kapi_bf16.py" "$@"

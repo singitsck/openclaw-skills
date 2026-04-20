@@ -1,0 +1,13 @@
+{
+  "email": "your-email@yahoo.com",
+  "app_password": "YOUR_APP_PASSWORD_HERE",
+  "bank_domains": [
+    "@hsbc.com.hk",
+    "@citi.com",
+    "@standardchartered.com.hk",
+    "@dbs.com",
+    "@boa.com",
+    "@hangseng.com"
+  ],
+  "custom_keywords": []
+}

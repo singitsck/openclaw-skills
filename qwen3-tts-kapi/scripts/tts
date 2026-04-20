@@ -1,0 +1,198 @@
+#!/bin/bash
+#
+# TTS 快捷調用腳本 - 為 singit 主人優化 💙
+#
+# 用法:
+#   tts izumi "要說的內容"              # 正常語氣
+#   tts izumi "太好了！" --emotion happy # 開心語氣
+#   tts rem "主人晚安" --output ~/a.wav  # 自定義輸出
+#   tts izumi "你好" --to-discord        # 生成並發送到 Discord
+#
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PYTHON_SCRIPT="$SCRIPT_DIR/qwen3_kapi_v2.py"
+DEFAULT_OUTPUT_DIR="$HOME/.openclaw/tts_output"
+WORKSPACE_GROUPCHAT="$HOME/.openclaw/workspace-groupchat"
+
+# 顏色輸出
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# 顯示幫助
+show_help() {
+    cat << EOF
+🎙️ TTS 快捷調用工具 - 為 singit 主人服務 💙
+
+用法:
+    tts <voice> <text> [options]
+
+聲音選項:
+    izumi    和泉妃愛 - 活潑可愛的學妹風格
+    rem      雷姆 - 溫柔忠誠的女僕風格
+
+情緒選項:
+    normal     正常語氣 (默認)
+    happy      開心、興奮
+    gentle     溫柔、柔和
+    sad        悲傷、難過
+    angry      生氣、憤怒
+    surprised  驚訝、震驚
+    shy        害羞、靦腆
+    teasing    調皮、捉弄
+
+常用命令:
+    # 基礎用法
+    tts izumi "ひよひよ～主人好！"
+    
+    # 帶情緒
+    tts izumi "太好了！" --emotion happy
+    tts izumi "主人晚安～" --emotion gentle
+    tts izumi "えっ！？" --emotion surprised
+    
+    # 自定義輸出
+    tts izumi "測試語音" --output ~/test.wav
+    
+    # 生成並複製到 workspace-groupchat (供妃愛使用)
+    tts izumi "妃愛在這裡哦～" --to-groupchat
+    
+    # 列出所有選項
+    tts --list-voices
+    tts --list-emotions
+
+選項:
+    --emotion, -e     設置情緒風格
+    --output, -o      自定義輸出路徑
+    --to-groupchat    輸出到 workspace-groupchat 目錄
+    --quiet, -q       安靜模式
+    --help, -h        顯示此幫助
+
+示例:
+    tts izumi "今天天氣真好呢～" --emotion happy
+    tts rem "我會一直守護主人的" --emotion gentle --output ~/rem_voice.wav
+
+EOF
+}
+
+# 處理特殊命令（在檢查參數數量之前）
+case "$1" in
+    --help|-h)
+        show_help
+        exit 0
+        ;;
+    --list-voices)
+        python3 "$PYTHON_SCRIPT" --list-voices
+        exit 0
+        ;;
+    --list-emotions)
+        python3 "$PYTHON_SCRIPT" --list-emotions
+        exit 0
+        ;;
+esac
+
+# 檢查參數
+if [ $# -lt 2 ]; then
+    show_help
+    exit 1
+fi
+
+# 解析參數
+VOICE="$1"
+TEXT="$2"
+shift 2
+
+EMOTION="normal"
+OUTPUT=""
+TO_GROUPCHAT=false
+QUIET=false
+
+# 解析額外選項
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --emotion|-e)
+            EMOTION="$2"
+            shift 2
+            ;;
+        --output|-o)
+            OUTPUT="$2"
+            shift 2
+            ;;
+        --to-groupchat)
+            TO_GROUPCHAT=true
+            shift
+            ;;
+        --quiet|-q)
+            QUIET=true
+            shift
+            ;;
+        --help|-h)
+            show_help
+            exit 0
+            ;;
+        *)
+            echo -e "${RED}❌ 未知選項: $1${NC}"
+            show_help
+            exit 1
+            ;;
+    esac
+done
+
+# 構建 Python 腳本參數
+PY_ARGS=(
+    "--voice" "$VOICE"
+    "--text" "$TEXT"
+    "--emotion" "$EMOTION"
+)
+
+# 處理輸出路徑
+if [ -n "$OUTPUT" ]; then
+    PY_ARGS+=("--output" "$OUTPUT")
+    FINAL_OUTPUT="$OUTPUT"
+elif [ "$TO_GROUPCHAT" = true ]; then
+    mkdir -p "$WORKSPACE_GROUPCHAT"
+    TIMESTAMP=$(date +%s)
+    OUTPUT_PATH="$WORKSPACE_GROUPCHAT/tts_${VOICE}_${EMOTION}_${TIMESTAMP}.wav"
+    PY_ARGS+=("--output" "$OUTPUT_PATH")
+    FINAL_OUTPUT="$OUTPUT_PATH"
+else
+    # 使用默認輸出目錄
+    PY_ARGS+=("--output" "$DEFAULT_OUTPUT_DIR/tts_${VOICE}_${EMOTION}_$(date +%s).wav")
+    FINAL_OUTPUT="$DEFAULT_OUTPUT_DIR/tts_${VOICE}_${EMOTION}_$(date +%s).wav"
+fi
+
+# 安靜模式
+if [ "$QUIET" = true ]; then
+    PY_ARGS+=("--quiet")
+fi
+
+# 執行生成
+echo -e "${BLUE}🎙️ 生成語音...${NC}"
+if ! python3 "$PYTHON_SCRIPT" "${PY_ARGS[@]}"; then
+    echo -e "${RED}❌ 生成失敗${NC}"
+    exit 1
+fi
+
+# 顯示結果（非安靜模式）
+if [ "$QUIET" = false ]; then
+    echo ""
+    echo -e "${GREEN}✅ 語音已生成！${NC}"
+    
+    # 找到實際生成的文件（Python腳本會添加 _000.wav）
+    ACTUAL_OUTPUT="${FINAL_OUTPUT%.wav}_000.wav"
+    if [ -f "$ACTUAL_OUTPUT" ]; then
+        echo -e "📁 文件: ${YELLOW}$ACTUAL_OUTPUT${NC}"
+        
+        # 顯示文件大小
+        FILE_SIZE=$(du -h "$ACTUAL_OUTPUT" | cut -f1)
+        echo -e "📊 大小: $FILE_SIZE"
+        
+        # 複製到 groupchat 目錄（如果請求了）
+        if [ "$TO_GROUPCHAT" = true ]; then
+            echo -e "${BLUE}📤 已保存到 workspace-groupchat${NC}"
+        fi
+    fi
+fi
+
+exit 0
