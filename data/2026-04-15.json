@@ -1,0 +1,43 @@
+{
+  "date": "2026-04-15",
+  "timestamp": "2026-04-15 17:08:15",
+  "stocks": {
+    "2513.HK": {
+      "code": "2513.HK",
+      "name": "Knowledge Atlas Tech Joint",
+      "price": 867.0,
+      "change": -81.0,
+      "change_pct": -8.54,
+      "open": 976.0,
+      "high": 982.0,
+      "low": 825.0,
+      "volume": 2201325,
+      "market_cap": 386545975296,
+      "week_52_low": 116.1,
+      "week_52_high": 1010.0,
+      "pe_ratio": null,
+      "pb_ratio": -28.327362,
+      "timestamp": "2026-04-15 17:08:13",
+      "date": "2026-04-15"
+    },
+    "0100.HK": {
+      "code": "0100.HK",
+      "name": "MiniMax Group Inc",
+      "price": 847.5,
+      "change": -103.5,
+      "change_pct": -10.88,
+      "open": 951.0,
+      "high": 978.0,
+      "low": 815.0,
+      "volume": 2149568,
+      "market_cap": 265805905920,
+      "week_52_low": 815.0,
+      "week_52_high": 978.0,
+      "pe_ratio": "Infinity",
+      "pb_ratio": -4.4367647,
+      "timestamp": "2026-04-15 17:08:15",
+      "date": "2026-04-15"
+    }
+  },
+  "count": 2
+}
