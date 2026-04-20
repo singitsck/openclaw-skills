@@ -289,6 +289,57 @@ Split Task → Parallel Workers → Merge Results
 
 ---
 
+## 📱 Discord Message Formatting
+
+When sending messages to Discord (via `message` tool or cron delivery), **ALWAYS** follow these rules:
+
+### ❌ NEVER Use
+- Markdown tables (`| col1 | col2 |`) — Discord renders them as plain text
+- Complex nested formatting
+- Very long single messages (>2000 chars)
+
+### ✅ ALWAYS Use
+```markdown
+**📊 Title** — Bold for headers
+
+**Section Header**
+• Item 1 — Bullet points (• or -)
+• Item 2
+• Item 3
+
+**Status Overview**
+✅ Task completed
+❌ Task failed
+⏳ In progress
+
+**Code Examples**
+```
+code block for structured data
+```
+
+**Inline code** for `file paths` or `commands`
+
+> 💡 Use blockquotes for important notes
+```
+
+### Format Examples
+
+**Bad (Table - will be messy):**
+```markdown
+| Task | Status | Time |
+|------|--------|------|
+| A | Done | 5m |
+```
+
+**Good (Discord Native):**
+```markdown
+**Task Status**
+• Task A — ✅ Done (5m)
+• Task B — ⏳ In Progress
+```
+
+---
+
 ## 🛠️ Best Practices
 
 ### 1. Always Use Research-First for Content

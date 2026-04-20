@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "openclaw-slides": {
+      "version": "1.0.3",
+      "installedAt": 1774357865554
+    },
+    "dragon-ppt-maker": {
+      "version": "1.0.0",
+      "installedAt": 1774359248200
+    },
+    "applescript": {
+      "version": "1.0.0",
+      "installedAt": 1774505942017
+    }
+  }
+}
