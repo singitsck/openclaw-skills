@@ -1,0 +1,43 @@
+{
+  "date": "2026-08-21",
+  "timestamp": "2026-08-21 17:05:29",
+  "stocks": {
+    "2513.HK": {
+      "code": "2513.HK",
+      "name": "Z.AI Co., Ltd.",
+      "price": 1129.0,
+      "change": 106.0,
+      "change_pct": 10.36,
+      "open": 1016.0,
+      "high": 1149.0,
+      "low": 992.5,
+      "volume": 8817494,
+      "market_cap": 503356850176,
+      "week_52_low": 116.1,
+      "week_52_high": 2980.0,
+      "pe_ratio": null,
+      "pb_ratio": -48.236977,
+      "timestamp": "2026-08-21 17:05:28",
+      "date": "2026-08-21"
+    },
+    "0100.HK": {
+      "code": "0100.HK",
+      "name": "MiniMax Group Inc",
+      "price": 347.2,
+      "change": 36.8,
+      "change_pct": 11.86,
+      "open": 305.2,
+      "high": 355.8,
+      "low": 300.0,
+      "volume": 18762379,
+      "market_cap": 121254502400,
+      "week_52_low": 186.2,
+      "week_52_high": 1330.0,
+      "pe_ratio": null,
+      "pb_ratio": -1.8167816,
+      "timestamp": "2026-08-21 17:05:29",
+      "date": "2026-08-21"
+    }
+  },
+  "count": 2
+}
